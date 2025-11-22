@@ -6,8 +6,6 @@ venv/
 __pycache__/
 *.pyc
 
-# Données
-DataSet/
 
 # Autres
 *.log
