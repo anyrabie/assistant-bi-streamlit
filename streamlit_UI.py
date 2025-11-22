@@ -1,5 +1,5 @@
 import streamlit as st 
-
+from ollama_interrog import AssistantBI
 st.set_page_config(
     page_title='Assistant BI Conversationnel',
     page_icon='',
@@ -8,7 +8,9 @@ st.set_page_config(
 
 @st.cache_resource
 def load_assistant():
-    return "rabie"
+    return AssistantBI(db_path='./DataSet/dw_ventes.db')
+
+assistant = load_assistant()
 
 def main():
     st.title("Assistant BI Conversationnel")
@@ -23,9 +25,12 @@ def main():
     if st.button('Analyser', type='primary'):
         if question:
             with st.spinner('Analyse en cours ...'):
+                reponse, data = assistant.interroger(question)
                 
                 st.success('Reponse')
-                st.write('reponse')
+                st.write(reponse)
+                if data is not None and not data.empty:
+                    st.dataframe(data, use_container_width=True)
         else:
             st.warning('Veuillez saisir une question')
 
