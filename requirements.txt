@@ -1,0 +1,6 @@
+# Liste des dépendances pour ce projet
+# Exemple:
+pandas
+# scikit-learn
+# matplotlib
+
