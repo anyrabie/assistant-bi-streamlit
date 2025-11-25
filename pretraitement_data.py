@@ -37,6 +37,7 @@ kpi_region_month = df.groupby(['Region', 'Year', 'Month']).agg({
     'Profit' : 'sum' 
 }).reset_index()
 
+df.columns = df.columns.str.replace(' ', '_').str.replace('-', '_')
 df.to_csv('./DataSet/superstore_cleaned.csv',index=False)
 kpi_category.to_csv('./DataSet/kpi_categories.csv', index=False)
 
@@ -48,4 +49,4 @@ kpi_region_month.to_sql('kpi_region_mois', conn, if_exists='replace', index=Fals
 conn.close()
 
 print('Preprocessing termine avec succes !')
-#print(df.head())
+print(df.columns)

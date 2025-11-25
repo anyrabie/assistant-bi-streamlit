@@ -21,7 +21,7 @@ def main():
         'Votre question :',
         placeholder="Ex: Quelle region a le meilleur chiffre d'affaires ?"
     )
-    
+    show_viz = st.checkbox('Afficher graphique', value=True)
     if st.button('Analyser', type='primary'):
         if question:
             with st.spinner('Analyse en cours ...'):
@@ -31,6 +31,10 @@ def main():
                 st.write(reponse)
                 if data is not None and not data.empty:
                     st.dataframe(data, use_container_width=True)
+                    if show_viz:
+                        fig = assistant.generer_viz_rapide(data)
+                        if fig:
+                            st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning('Veuillez saisir une question')
 
@@ -44,5 +48,6 @@ def main():
     for ex in exemples:
         if st.sidebar.button(ex):
             st.session_state.question = ex
+            st.rerun()
 if __name__ == "__main__":
     main()

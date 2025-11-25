@@ -2,12 +2,13 @@ import ollama
 import sqlite3 as sql
 import pandas as pd
 import json
+import plotly.express as px 
 
 class AssistantBI:
-    def __init__(self, db_path='./DataSet/dw_ventes.db', model='llama3.2:3b'):
+    def __init__(self, db_path='./DataSet/dw_ventes.db', model='qwen2.5-coder:7b'):
         self.db_path = db_path
         self.model = model
-        self.conn = sql.connect(db_path)
+        self.conn = sql.connect(db_path,check_same_thread=False)
         
         self.schema = self._get_schema()
         
@@ -33,17 +34,20 @@ class AssistantBI:
         ])
         
         prompt = f"""Tu es un expert en SQL et analyse de donnees.
+
 Schema de la base de donnees :
 {schema_text}
 
 Question utilisateur : {question}
-Instructions :
-1. Genere UNIQUEMENT une requete SQL valide
-2. Utilise les bonnes tables selon la question
-3. Ajoute ORDER BY et LIMIT si pertinent
-4. Reponds SEULEMENT avec le SQL, sans texte additionnel
- 
- Requete SQL :"""
+
+Instructions STRICTES :
+1. Genere UNIQUEMENT une requete SQL valide SQLite
+2. N'utilise PAS de JOIN ON TRUE (fais des JOIN corrects)
+3. Utilise les bonnes tables selon la question
+4. Ajoute ORDER BY et LIMIT si pertinent
+5. Reponds SEULEMENT avec le SQL, sans markdown ni texte
+
+Requete SQL :"""
  
         reponse = ollama.chat(
             model=self.model,
@@ -108,7 +112,7 @@ Instructions :
         print(f"\n[RESULTATS] {len(resultats)} lignes")
 
         # 3) Si aucun résultat
-        if not resultats:
+        if resultats.empty:
             return "La requête n’a retourné aucun résultat.", []
 
         # 4) Génération réponse
@@ -119,6 +123,32 @@ Instructions :
 
         return reponse, resultats
 
+    def generer_viz_rapide(self,resultats):
+        
+        if resultats is None or resultats.empty or len(resultats)<2:
+            return None
+        col_x = resultats.columns[0]
+        col_y = resultats.columns[1]
+        
+        if not pd.api.types.is_numeric_dtype(resultats[col_y]):
+            return None
+        
+        fig = px.bar(
+            resultats.head(10),
+            x=col_x,
+            y=col_y,
+            title = 'Analyse Visuelle',
+            text=col_y
+        )
+        
+        fig.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+        fig.update_layout(
+            template='plotly_white',
+            showlegend=False,
+            height=400,
+            margin=dict(t=50, b=50, l=50, r=50)
+        )
+        return fig
         
 if __name__=='__main__':
     assistant = AssistantBI()
